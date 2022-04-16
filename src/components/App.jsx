@@ -1,7 +1,10 @@
 import React from 'react';
+import { connect } from 'react-redux';
+
 import { CheckboxGroup } from './common';
 import css from './styles.module.css';
 import { FILTER_STATUSES, filterOptions } from './constants';
+import { UsersSelectors, UsersActionCreators } from '../store';
 
 const filterUser = (filter, user) => {
   if (filter === FILTER_STATUSES.ALL) {
@@ -21,23 +24,10 @@ const generateUniqId = (users) => {
   return Math.max(...ids) + 1;
 }
 
-export class App extends React.Component {
+class AppOriginal extends React.Component {
   state = {
-    users: [
-      { id: 1, name: 'Bob', isBanned: true },
-      { id: 2, name: 'Иннокентий', isBanned: false },
-      { id: 3, name: 'Евклидий', isBanned: true },
-      { id: 4, name: 'Петр', isBanned: false },
-      { id: 5, name: 'Афанасий', isBanned: true },
-    ],
     taskInput: '',
     filter: FILTER_STATUSES.ALL,
-  }
-
-  deleteTaskHandler = (id) => {
-    this.setState((prevState) => ({
-      users: prevState.users.filter(({ id: userID }) => userID !== id )
-    }));
   }
 
   inputChangeHanler = (e) => {
@@ -72,7 +62,8 @@ export class App extends React.Component {
   }
 
   render () {
-    const { users, taskInput, filter } = this.state;
+    const { users } = this.props;
+    const { taskInput, filter } = this.state;
 
     return (
       <div>
@@ -92,7 +83,7 @@ export class App extends React.Component {
               }} />
               {name}
               {isBanned && <button onClick={() => {
-                this.deleteTaskHandler(id)
+                this.props.deleteUser(id)
               }}>удали меня</button>}
             </li>
           ))}
@@ -101,3 +92,13 @@ export class App extends React.Component {
     );
   }
 }
+
+const mapStateToProps = (state) => ({
+  users: UsersSelectors.getUsers(state)
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  deleteUser: (id) => dispatch(UsersActionCreators.deleteUser(id)),
+})
+
+export const App = connect(mapStateToProps, mapDispatchToProps)(AppOriginal)
